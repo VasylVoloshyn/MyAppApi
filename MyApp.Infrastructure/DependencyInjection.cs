@@ -8,10 +8,27 @@ namespace MyApp.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        string? connectionString = null,
+        bool useInMemory = false)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+        if (useInMemory)
+        {
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase("TestDb"));
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(connectionString));
+        }
+
         services.AddScoped<IProductRepository, ProductRepository>();
+
         return services;
     }
 }

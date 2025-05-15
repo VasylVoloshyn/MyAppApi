@@ -8,23 +8,34 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Infrastructure
-builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("DefaultConnection")!);
+var isTesting = builder.Environment.EnvironmentName == "Testing";
 
+if (isTesting)
+{
+    builder.Services.AddInfrastructure(useInMemory: true);
+}
+else
+{
+    builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("DefaultConnection")!);
+}
 // Application
 builder.Services.AddMediatR(typeof(MyApp.Application.AssemblyReference).Assembly);
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!isTesting)
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await AppDbContextSeed.SeedAsync(dbContext);
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await AppDbContextSeed.SeedAsync(dbContext);
+    }
 }
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
