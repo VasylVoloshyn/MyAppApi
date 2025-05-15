@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyApp.Domain.Interfaces;
 using MyApp.Infrastructure.Repositories;
+using MyApp.Infrastructure.Persistence;
 
 namespace MyApp.Infrastructure;
 

@@ -1,7 +1,6 @@
-using MyApp.Application;
-using MyApp.Infrastructure;
 using MediatR;
-using System.Reflection;
+using MyApp.Infrastructure;
+using MyApp.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +15,12 @@ builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("De
 builder.Services.AddMediatR(typeof(MyApp.Application.AssemblyReference).Assembly);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await AppDbContextSeed.SeedAsync(dbContext);
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();
