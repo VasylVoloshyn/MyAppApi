@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MyApp.Application.Common.Interfaces;
 using MyApp.Application.DTO.Authentication;
 using MyApp.Infrastructure.Identity;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,11 +16,18 @@ public class AuthenticationController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IJwtTokenService _jwtTokenService;
 
-    public AuthenticationController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthenticationController(UserManager<ApplicationUser> userManager,
+        IConfiguration configuration,
+        RoleManager<IdentityRole> roleManager,
+        IJwtTokenService jwtTokenService)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _roleManager = roleManager;
+        _jwtTokenService = jwtTokenService;
     }
 
     [HttpPost("register")]
@@ -38,40 +46,31 @@ public class AuthenticationController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(result.Errors);
 
-        return Ok();
+        var roleExists = await _roleManager.RoleExistsAsync(request.Role);
+        if (!roleExists)
+            return BadRequest($"Role '{request.Role}' does not exist.");
+
+        await _userManager.AddToRoleAsync(user, request.Role);
+
+        return Ok("User registered successfully.");
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
+        ApplicationUser user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             return Unauthorized();
 
-        var token = GenerateJwtToken(user);
-        return Ok(new { token });
-    }
-
-    private string GenerateJwtToken(ApplicationUser user)
-    {
-        var claims = new[]
+        var roles = await _userManager.GetRolesAsync(user);
+        TokenRequestDto tokenRequestDto = new TokenRequestDto()
         {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-        new Claim("firstName", user.FirstName),
-        new Claim("lastName", user.LastName)
-    };
+            Email = request.Email,
+            UserId = user.Id,
+            Roles = roles
+        };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(1),
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var token = _jwtTokenService.GenerateToken(tokenRequestDto);
+        return Ok(new { token });
     }
 }

@@ -5,6 +5,8 @@ using MyApp.Infrastructure.Repositories;
 using MyApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using MyApp.Infrastructure.Identity;
+using MyApp.Application.Common.Interfaces;
+using MyApp.Infrastructure.Authentication;
 
 namespace MyApp.Infrastructure;
 
@@ -34,6 +36,8 @@ public static class DependencyInjection
             .AddDefaultTokenProviders();
 
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+
 
         return services;
     }

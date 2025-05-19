@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MyApp.Domain.Model;
 
 namespace MyApp.Infrastructure.Persistence;
@@ -21,5 +22,18 @@ public static class AppDbContextSeed
             context.Products.AddRange(products);
             await context.SaveChangesAsync();
         }       
+    }
+
+    public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+    {
+        string[] roles = new[] { "Client", "Manager" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
     }
 }

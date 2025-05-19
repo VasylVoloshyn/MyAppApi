@@ -1,7 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MyApp.Application.Common.Interfaces;
 using MyApp.Infrastructure;
 using MyApp.Infrastructure.Persistence;
 using System.Text;
@@ -9,7 +11,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-// Перевірка ключів JWT у конфігурації
 var jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");
 var jwtIssuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured.");
 var jwtAudience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured.");
@@ -83,16 +84,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+
 var app = builder.Build();
 
 if (!isTesting)
 {
     using (var scope = app.Services.CreateScope())
-    {
+    {        
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
         await AppDbContextSeed.SeedAsync(dbContext);
+        await AppDbContextSeed.SeedRolesAsync(roleManager);
     }
 }
+
 
 app.UseHttpsRedirection();
 
