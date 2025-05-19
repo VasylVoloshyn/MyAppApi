@@ -1,8 +1,4 @@
-﻿using MediatR;
-
-namespace MyApp.Application.Products.Queries;
-
-public record GetProductsQuery : IRequest<List<ProductDto>>;
+﻿namespace MyApp.Application.DTO.Products.Queries;
 
 public class ProductDto
 {

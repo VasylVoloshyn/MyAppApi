@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net;
 using System.Text.Json;
-using MyApp.Application.Products.Queries;
+using MyApp.Application.DTO.Products.Queries;
 
 namespace MyApp.API.Tests;
 

@@ -1,5 +1,4 @@
-﻿using MyApp.Application.Products.Queries;
-
+﻿using MyApp.Application.DTO.Products.Queries;
 
 namespace MyApp.API.Tests;
 

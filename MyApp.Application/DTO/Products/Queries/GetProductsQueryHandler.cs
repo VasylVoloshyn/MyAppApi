@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using MyApp.Domain.Interfaces;
 
-namespace MyApp.Application.Products.Queries;
+namespace MyApp.Application.DTO.Products.Queries;
 
 public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<ProductDto>>
 {
