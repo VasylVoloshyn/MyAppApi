@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using MyApp.Domain.Interfaces;
 using MyApp.Infrastructure.Repositories;
 using MyApp.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
+using MyApp.Infrastructure.Identity;
 
 namespace MyApp.Infrastructure;
 
@@ -26,6 +28,10 @@ public static class DependencyInjection
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
         }
+
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
         services.AddScoped<IProductRepository, ProductRepository>();
 
